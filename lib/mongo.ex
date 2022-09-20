@@ -369,7 +369,8 @@ defmodule Mongo do
         fullDocument: opts[:full_document] || "default",
         resumeAfter: opts[:resume_after],
         startAtOperationTime: opts[:start_at_operation_time],
-        startAfter: opts[:start_after]
+        startAfter: opts[:start_after],
+        fullDocumentBeforeChange: opts[:full_document_before_change]
       }
       |> filter_nils()
 
@@ -1258,6 +1259,7 @@ defmodule Mongo do
         viewOn: opts[:view_on],
         pipeline: opts[:pipeline],
         collation: opts[:collation],
+        changeStreamPreAndPostImages: opts[:change_stream_pre_and_post_images],
         writeConcern: write_concern(opts)
       ]
       |> filter_nils()
