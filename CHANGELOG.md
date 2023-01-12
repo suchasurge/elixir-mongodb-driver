@@ -5,17 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0](https://github.com/zookzook/elixir-mongodb-driver/compare/0.9.2...v1.0.0) (2022-11-27)
+## [1.0.2](https://github.com/zookzook/elixir-mongodb-driver/compare/v1.0.1...v1.0.2) (2023-01-02)
 
 
 ### Bug Fixes
 
+* deprecated 'use Bitwise' ([#168](https://github.com/zookzook/elixir-mongodb-driver/issues/168)) ([a980d57](https://github.com/zookzook/elixir-mongodb-driver/commit/a980d5782a56a0a8168c5229fe22b7a935c433b3))
+* use the basename of the file path ([3a10c56](https://github.com/zookzook/elixir-mongodb-driver/commit/3a10c5604a2cbc5d284a17578280e96c93f61e63))
+
+## [1.0.1](https://github.com/zookzook/elixir-mongodb-driver/compare/v1.0.0...v1.0.1) (2022-12-17)
+
+
+### Bug Fixes
+
+* replace :code.priv_dir/1 function ([da0fd6c](https://github.com/zookzook/elixir-mongodb-driver/commit/da0fd6cdc777c4d1cb1df0abac98af1f4a37ad11))
+
+## [1.0.0](https://github.com/zookzook/elixir-mongodb-driver/compare/0.9.2...v1.0.0) (2022-11-27)
+
+### Bug Fixes
+
 * add migration ([da65de4](https://github.com/zookzook/elixir-mongodb-driver/commit/da65de4d8fd7cf6a15ac0c42b3022ca1fe743876))
-* improve the dump and load functions ([#154](https://github.com/zookzook/elixir-mongodb-driver/issues/154)) ([e7f2d44](https://github.com/zookzook/elixir-mongodb-driver/commit/e7f2d44a01fa25cd85cb8fd1f935ba5a201fe011))
 * remove a bug in the hello handshake protocol (thanks to fireproofsocks for reporting) ([59aa841](https://github.com/zookzook/elixir-mongodb-driver/commit/59aa841cc619f77979cc3027c76e918373685723))
 * remove derived attributes in the dump function ([c1b60b4](https://github.com/zookzook/elixir-mongodb-driver/commit/c1b60b413329f32d4e0bd52c3988b89b19fe7f5a))
-* use the same timestamps in new/0 function ([0db61da](https://github.com/zookzook/elixir-mongodb-driver/commit/0db61dac03eb2a27d4d47576ed402ad1e6c452f4))
 
+### Enhancements
+* improve the dump and load functions ([#154](https://github.com/zookzook/elixir-mongodb-driver/issues/154)) ([e7f2d44](https://github.com/zookzook/elixir-mongodb-driver/commit/e7f2d44a01fa25cd85cb8fd1f935ba5a201fe011))
+* use the same timestamps in new/0 function ([0db61da](https://github.com/zookzook/elixir-mongodb-driver/commit/0db61dac03eb2a27d4d47576ed402ad1e6c452f4))
 
 ### Miscellaneous Chores
 

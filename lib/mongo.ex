@@ -54,7 +54,6 @@ defmodule Mongo do
 
   require Logger
 
-  use Bitwise
   use Mongo.Messages
 
   import Mongo.Session, only: [in_read_session: 3, in_write_session: 3]
@@ -71,8 +70,8 @@ defmodule Mongo do
 
   @type conn :: DbConnection.Conn
   @type collection :: String.t()
-  @opaque cursor :: Mongo.Cursor.t()
-  @type result(t) :: :ok | {:ok, t} | {:error, Mongo.Error.t()}
+  @type cursor :: Mongo.Cursor.t()
+  @type result(t) :: :ok | {:ok, t} | {:error, Mongo.Error.t()} | {:error, Mongo.WriteError.t()}
   @type result!(t) :: t
   @type initial_type :: :unknown | :single | :replica_set_no_primary | :sharded
 
