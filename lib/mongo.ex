@@ -1052,7 +1052,7 @@ defmodule Mongo do
     * `:upsert` - if set to `true` creates a new document when no document
       matches the filter (default: `false`)
   """
-  @spec update_one(GenServer.server(), collection, BSON.document(), BSON.document(), Keyword.t()) ::
+  @spec update_one(GenServer.server(), collection, BSON.document(), [BSON.document()] | BSON.document(), Keyword.t()) ::
           result(Mongo.UpdateResult.t())
   def update_one(topology_pid, coll, filter, update, opts \\ []) do
     _ = modifier_docs(update, :update)
@@ -1062,7 +1062,7 @@ defmodule Mongo do
   @doc """
   Similar to `update_one/5` but unwraps the result and raises on error.
   """
-  @spec update_one!(GenServer.server(), collection, BSON.document(), BSON.document(), Keyword.t()) ::
+  @spec update_one!(GenServer.server(), collection, BSON.document(), [BSON.document()] | BSON.document(), Keyword.t()) ::
           result!(Mongo.UpdateResult.t())
   def update_one!(topology_pid, coll, filter, update, opts \\ []) do
     bangify(update_one(topology_pid, coll, filter, update, opts))
@@ -1075,7 +1075,7 @@ defmodule Mongo do
   please refer to the [MongoDB documentation](https://docs.mongodb.com/manual/reference/command/update/#dbcmd.update)
 
   """
-  @spec update_many(GenServer.server(), collection, BSON.document(), BSON.document(), Keyword.t()) ::
+  @spec update_many(GenServer.server(), collection, BSON.document(), [BSON.document()] | BSON.document(), Keyword.t()) ::
           result(Mongo.UpdateResult.t())
   def update_many(topology_pid, coll, filter, update, opts \\ []) do
     _ = modifier_docs(update, :update)
@@ -1089,7 +1089,7 @@ defmodule Mongo do
           GenServer.server(),
           collection,
           BSON.document(),
-          BSON.document(),
+          [BSON.document()] | BSON.document(),
           Keyword.t()
         ) :: result!(Mongo.UpdateResult.t())
   def update_many!(topology_pid, coll, filter, update, opts \\ []) do
