@@ -705,6 +705,11 @@ separated in sub folders and module namespaces.
 ## Auth Mechanisms
 
 For versions of Mongo 3.0 and greater, the auth mechanism defaults to SCRAM.
+
+If connecting to MongoDB Enterprise Edition or MongoDB Atlas, the [PLAIN](https://www.mongodb.com/docs/manual/tutorial/authenticate-nativeldap-activedirectory/)
+auth mechanism is supported for LDAP authentication. The GSSAPI auth mechanism used for Kerberos authentication
+is not currently supported.
+
 If you'd like to use [MONGODB-X509](https://www.mongodb.com/docs/v6.0/tutorial/configure-x509-client-authentication/)
 authentication, you can specify that as a `start_link` option. 
 
@@ -715,7 +720,7 @@ You need roughly three additional configuration steps:
 * Authenticate with an x.509 Certificate
 
 To get the x.509 authentication working you need to prepare the ssl configuration accordingly:
-* you need set the ssl option: `verify_peer`
+* you need to set the ssl option: `verify_peer`
 * you need to specify the `cacertfile` because Erlang BEAM don't provide any CA certificate store by default
 * you maybe need to customize the hostname check to allow wildcard certificates
 * you need to specify the `username` from the subject entry of the user certificate
@@ -903,7 +908,7 @@ result = Mongo.BulkWrite.write(:mongo, bulk, w: 1)
 In the following example we import 1.000.000 integers into the MongoDB using the stream api:
 
 We need to create an insert operation for each number. Then we call the `Mongo.UnorderedBulk.stream`
-function to import it. This function returns a stream function which accumulate
+function to import it. This function returns a stream function that accumulates
 all inserts operations until the limit `1000` is reached. In this case the operation group is send to
 MongoDB. So using the stream api you can reduce the memory using while
 importing big volume of data.
@@ -1022,7 +1027,7 @@ That means, you can just generate a `raise :should_not_happen` exception as well
 
 ## Command Monitoring
 
-You can watch all events that are triggered while the driver send requests and processes responses. You can use the
+You can watch all events that are triggered while the driver sends requests and processes responses. You can use the
 `Mongo.EventHandler` as a starting point. It logs the events from the topic `:commands` (by ignoring the `:isMaster` command)
 to `Logger.info`:
 
@@ -1037,7 +1042,7 @@ iex> {:ok, conn} = Mongo.start_link(url: "mongodb://localhost:27017/test")
 
 ## Testing
 
-Latest MongoDB is used while running the tests. Replica set of three nodes is created and runs all test except the socket and ssl test. If you want to
+Latest MongoDB is used while running the tests. Replica set of three nodes is created and runs all tests, except the socket and ssl test. If you want to
 run the test cases against other MongoDB deployments or older versions, you can use the [mtools](https://github.com/rueckstiess/mtools) for deployment and run the test cases locally:
 
 ```bash
