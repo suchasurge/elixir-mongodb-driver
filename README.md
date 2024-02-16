@@ -30,6 +30,17 @@
 - support for streaming protocol ([See](https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.rst#streaming-protocol))
 - support for migration scripts
 
+## mongodb_ecto
+
+The version 1.4.0 supports the [mongodb_ecto](https://github.com/elixir-mongo/mongodb_ecto) package. 
+A series of changes are required to support the adapter. Some BSON encoders and a missing generic update function were added for the adapter. 
+Most notably, the `find-then-modify` command functions `find_one_and_update` and `find_one_and_replace` now return appropriate 
+`FindAndModifyResult` structs that contain additional write information otherwise neglected, which the adapter requires. 
+
+After upgrading the driver to version 1.4.0 you need to change the code regarding the results of 
+* `Mongo.find_one_and_update`
+* `Mongo.find_one_and_replace`
+
 ## Usage
 
 ### Installation
@@ -38,7 +49,7 @@ Add `mongodb_driver` to your mix.exs `deps`.
 
 ```elixir
 defp deps do
-  [{:mongodb_driver, "~> 1.0.0"}]
+  [{:mongodb_driver, "~> 1.4.0"}]
 end
 ```
 
@@ -836,6 +847,21 @@ The configuration looks now:
 
 Currently, we need to specify *an empty password* to get the x.509 auth module working. This will be changed soon.  
 
+## x509 and using a dedicated MongoDB Atlas server
+
+Using OTP 26 changed the default configuration regarding TLS. You may see issues when 
+connecting to a dedicated Atlas Server using OTP 26. You can restrict the allowed versions and force to use TLS 1.2 instead
+of TLS 1.3.
+
+```elixir
+   ...
+    versions: [:"tlsv1.2"],
+   ...
+```
+
+See also [MongoDB Security](https://www.mongodb.com/docs/atlas/reference/faq/security/) and 
+the [Issue 226](https://github.com/zookzook/elixir-mongodb-driver/issues/226) for some background information.
+
 ## AWS, TLS and Erlang SSL Ciphers
 
 Some MongoDB cloud providers (notably AWS) require a particular TLS cipher that isn't enabled
@@ -1130,6 +1156,7 @@ pip3 install 'mtools[all]'
 export PATH=to-your-mongodb/bin/:$PATH
 ulimit -S -n 2048 ## in case of Mac OS X
 mlaunch init --setParameter enableTestCommands=1 --replicaset --name "rs_1"
+mongosh --host localhost:27017 --eval 'rs.initiate({_id: "rs_1", members: [{_id: 0, host: "127.0.0.1:27017"}, {_id: 1, host: "127.0.0.1:27018"}, {_id: 2, host: "127.0.0.1:27019"}]})'
 mix test --exclude ssl --exclude socket
 ```
 
