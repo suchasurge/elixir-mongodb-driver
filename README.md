@@ -10,36 +10,26 @@
 
 ## Features
 
-- supports MongoDB versions 4.x, 5.x, 6.x
+- supports MongoDB versions 4.x, 5.x, 6.x, 7.x
 - connection pooling ([through DBConnection 2.x](https://github.com/elixir-ecto/db_connection))
 - streaming cursors
 - performant ObjectID generation
 - aggregation pipeline
 - replica sets
 - support for SCRAM-SHA-256 (MongoDB 4.x)
-- support for GridFS ([See](https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.rst))
-- support for change streams api ([See](https://github.com/mongodb/specifications/blob/master/source/change-streams/change-streams.rst))
-- support for bulk writes ([See](https://github.com/mongodb/specifications/blob/master/source/crud/crud.rst#write))
-- support for driver sessions ([See](https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.rst))
-- support for driver transactions ([See](https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.rst))
-- support for command monitoring ([See](https://github.com/mongodb/specifications/blob/master/source/command-monitoring/command-monitoring.rst))
-- support for retryable reads ([See](https://github.com/mongodb/specifications/blob/master/source/retryable-reads/retryable-reads.rst))
-- support for retryable writes ([See](https://github.com/mongodb/specifications/blob/master/source/retryable-writes/retryable-writes.rst))
+- support for GridFS ([See](https://github.com/mongodb/specifications/blob/master/source/gridfs/gridfs-spec.md))
+- support for change streams api ([See](https://github.com/mongodb/specifications/blob/master/source/change-streams/change-streams.md))
+- support for bulk writes ([See](https://github.com/mongodb/specifications/blob/master/source/crud/crud.md#write))
+- support for driver sessions ([See](https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.md))
+- support for driver transactions ([See](https://github.com/mongodb/specifications/blob/master/source/transactions/transactions.md))
+- support for command monitoring ([See](https://github.com/mongodb/specifications/blob/master/source/command-logging-and-monitoring/command-logging-and-monitoring.md))
+- support for retryable reads ([See](https://github.com/mongodb/specifications/blob/master/source/retryable-reads/retryable-reads.md))
+- support for retryable writes ([See](https://github.com/mongodb/specifications/blob/master/source/retryable-writes/retryable-writes.md))
 - support for simple structs using the Mongo.Encoder protocol
 - support for complex and nested documents using the `Mongo.Collection` macros
-- support for streaming protocol ([See](https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.rst#streaming-protocol))
+- support for streaming protocol ([See](https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-monitoring.md#streaming-protocol))
 - support for migration scripts
-
-## mongodb_ecto
-
-The version 1.4.0 supports the [mongodb_ecto](https://github.com/elixir-mongo/mongodb_ecto) package. 
-A series of changes are required to support the adapter. Some BSON encoders and a missing generic update function were added for the adapter. 
-Most notably, the `find-then-modify` command functions `find_one_and_update` and `find_one_and_replace` now return appropriate 
-`FindAndModifyResult` structs that contain additional write information otherwise neglected, which the adapter requires. 
-
-After upgrading the driver to version 1.4.0 you need to change the code regarding the results of 
-* `Mongo.find_one_and_update`
-* `Mongo.find_one_and_replace`
+- support for compression for zlib and zstd ([See](https://github.com/mongodb/specifications/blob/07b7649cc5c805ef4f85fccddf39226add7114e6/source/compression/OP_COMPRESSED.md))
 
 ## Usage
 
@@ -49,7 +39,7 @@ Add `mongodb_driver` to your mix.exs `deps`.
 
 ```elixir
 defp deps do
-  [{:mongodb_driver, "~> 1.4.0"}]
+  [{:mongodb_driver, "~> 1.5.0"}]
 end
 ```
 
@@ -59,32 +49,26 @@ Then run `mix deps.get` to fetch dependencies.
 
 ```elixir
 # Starts an unpooled connection
-{:ok, conn} = Mongo.start_link(url: "mongodb://localhost:27017/my-database")
+{:ok, top} = Mongo.start_link(url: "mongodb://localhost:27017/my-database")
 
-# Gets an enumerable cursor for the results
-cursor = Mongo.find(conn, "test-collection", %{})
-
-cursor
+top
+|> Mongo.find("test-collection", %{})
 |> Enum.to_list()
-|> IO.inspect
 ```
 
 To specify a username and password, use the `:username`, `:password`, and `:auth_source` options.
 
 ```elixir
 # Starts an unpooled connection
-{:ok, conn} =
+{:ok, top} =
     Mongo.start_link(url: "mongodb://localhost:27017/db-name",
                      username: "test_user",
                      password: "hunter2",
                      auth_source: "admin_test")
 
-# Gets an enumerable cursor for the results
-cursor = Mongo.find(conn, "test-collection", %{})
-
-cursor
+top
+|> Mongo.find("test-collection", %{})
 |> Enum.to_list()
-|> IO.inspect
 ```
 
 For secure requests, you may need to add some more options; see the "AWS, TLS and Erlang SSL ciphers" section below.
@@ -112,19 +96,48 @@ Failing operations return a `{:error, error}` tuple where `error` is a
 Using `$and`
 
 ```elixir
-Mongo.find(:mongo, "users", %{"$and" => [%{email: "my@email.com"}, %{first_name: "first_name"}]})
+@topology
+|> Mongo.find("users", %{"$and" => [%{email: "my@email.com"}, %{first_name: "first_name"}]})
+|> Enum.to_list()
 ```
 
 Using `$or`
 
 ```elixir
-Mongo.find(:mongo, "users", %{"$or" => [%{email: "my@email.com"}, %{first_name: "first_name"}]})
+@topology
+|> Mongo.find("users", %{"$or" => [%{email: "my@email.com"}, %{first_name: "first_name"}]})
+|> Enum.to_list()
 ```
 
 Using `$in`
 
 ```elixir
-Mongo.find(:mongo, "users", %{email: %{"$in" => ["my@email.com", "other@email.com"]}})
+@topology
+|> Mongo.find("users", %{email: %{"$in" => ["my@email.com", "other@email.com"]}})
+|> Enum.to_list()
+```
+
+## How to use the `Mongo.Stream`?
+
+Most query functions return a `Mongo.Stream` struct that implements the `Enumerable` protocol. The module checks out 
+the session and streams the batches from the server until the last batch has been received. 
+The session is then checked in for reuse. [Sessions](https://github.com/mongodb/specifications/blob/master/source/sessions/driver-sessions.md) are 
+temporary and reusable data structures, e.g. to support transactions. They are required by the Mongo DB driver specification.
+
+The use of internal structures of the `Mongo.Stream` struct is therefore not planned. For example, the following code results in an open session and the `docs` will only contain the first batch:
+
+```elixir
+%Mongo.Stream{docs: docs} = Mongo.aggregate(@topology, collection, pipeline, opts)
+Enum.map(docs, fn elem -> elem end)
+```
+
+The `Mongo.Stream` struct should therefore always be processed by an `Enum` or `Stream` function so that the session management 
+can take place automatically:
+
+```elixir
+@topology
+|> Mongo.aggregate(collection, pipeline, opts)
+|> Enum.to_list()
 ```
 
 ### Inserts
@@ -143,6 +156,17 @@ Mongo.insert_many(top, "users", [
   %{first_name: "Jane", last_name: "Doe"}
 ])
 ```
+
+## mongodb_ecto
+
+The version 1.4.0 supports the [mongodb_ecto](https://github.com/elixir-mongo/mongodb_ecto) package.
+A series of changes are required to support the adapter. Some BSON encoders and a missing generic update function were added for the adapter.
+Most notably, the `find-then-modify` command functions `find_one_and_update` and `find_one_and_replace` now return appropriate
+`FindAndModifyResult` structs that contain additional write information otherwise neglected, which the adapter requires.
+
+After upgrading the driver to version 1.4.0 you need to change the code regarding the results of
+* `Mongo.find_one_and_update`
+* `Mongo.find_one_and_replace`
 
 ## Data Representation
 
@@ -194,7 +218,9 @@ In those cases, driver users should represent documents using a list of tuples (
 order. Example:
 
 ```elixir
-Mongo.find(top, "users", %{}, sort: [last_name: 1, first_name: 1, _id: 1])
+@topology
+|> Mongo.find("users", %{}, sort: [last_name: 1, first_name: 1, _id: 1])
+|> Enum.to_list()
 ```
 
 The query above will sort users by last name, then by first name and finally by ID. If an Elixir map had been used to
@@ -454,12 +480,12 @@ config :my_app, MyApp.Repo,
   queue_target: 5_000
 ```
 
-Finally, we can add the `Mongo` instance to our application supervision tree:
+Finally, we can add the `Mongo.Repo` instance to our application supervision tree:
 
 ```elixir
   children = [
     # ...
-    {Mongo, MyApp.Repo.config()},
+    MyApp.Repo,
     # ...
   ]
 ```
@@ -541,6 +567,56 @@ In a Phoenix application with installed Phoenix Dashboard the metrics can be use
 
 Then you see for each collection the execution time for each different command in the Dashboard metric page.
 
+## Network compression
+
+The driver supports two compressors
+
+* zlib, which is supported by Erlang 
+* zstd, which is optional and supported by https://github.com/silviucpp/ezstd bindings.
+
+To activate zstd compression, simply add `{:ezstd, "~> 1.1"}` to the dependencies of your `mix.exs` file. 
+The driver will provide the related code. After activating the zstd compressor can be used by appending 
+the `compressors=zstd` to the URL connection string:
+
+```elixir
+{:ok, top} = Mongo.start_link(url: "mongodb://localhost:27017/my_database?compressors=zstd&maxPoolSize=10")
+```
+
+The driver uses compression for the following functions:
+
+* `Mongo.aggregate/4`
+* `Mongo.find/4`
+* `Mongo.insert_one/4`
+* `Mongo.insert_many/4`
+* `Mongo.update/4`
+* `Mongo.update_documents/6`
+* `Mongo.find_one_and_update/5`
+* `Mongo.find_one_and_replace/5`
+* `Mongo.find_one_and_delete/4`
+* `Mongo.count/4`
+* `Mongo.distinct/5`
+* `Mongo.delete_documents/5`
+* `Mongo.create/4`
+
+You can disable the compression for a single function by using the option `compression: false`, for example:
+
+```
+Mongo.find(top, "tasks", %{}, compression: false) |> Enum.to_list()
+```
+The compression significantly reduces the amount of data, while increasing the load on the CPU.
+This is certainly interesting for environments in which network transmission has to be paid for.
+
+zlib compression requires a greater penalty in terms of speed than zstd compression. 
+The zstd compression offers a good compromise between compression rate and speed and 
+is undoubtedly supported by all current MongoDB.
+
+The speed also depends on the `batch_size` attribute. A higher speed is achieved for certain batch sizes. 
+Simple experiments can be carried out here to determine which size shortens the duration of the queries:
+
+```elixir
+:timer.tc(fn -> Mongo.find(top, "tasks", %{}, limit: 30_000, batch_size: 1000) |> Stream.reject(fn _x -> true end) |> Stream.run() end)
+```
+
 ## Connection Pooling
 
 The driver supports pooling by DBConnection (2.x). By default `mongodb_driver` will start a single
@@ -549,24 +625,21 @@ function calls in `Mongo` using the pool:
 
 ```elixir
 # Starts an pooled connection
-{:ok, conn} = Mongo.start_link(url: "mongodb://localhost:27017/db-name", pool_size: 3)
+{:ok, top} = Mongo.start_link(url: "mongodb://localhost:27017/db-name", pool_size: 3)
 
-# Gets an enumerable cursor for the results
-cursor = Mongo.find(conn, "test-collection", %{})
-
-cursor
+# Gets an enumerable stream for the results
+top
+|> Mongo.find("test-collection", %{})
 |> Enum.to_list()
-|> IO.inspect
 ```
 
 If you're using pooling it is recommended to add it to your application supervisor:
 
 ```elixir
 def start(_type, _args) do
-  import Supervisor.Spec
 
   children = [
-    worker(Mongo, [[name: :mongo, database: "test", pool_size: 3]])
+    {Mongo, [name: :mongo_db, url: "mongodb://localhost:27017/test", pool_size: 3]}
   ]
 
   opts = [strategy: :one_for_one, name: MyApp.Supervisor]
@@ -574,7 +647,8 @@ def start(_type, _args) do
 end
 ```
 
-Due to the mongodb specification, an additional connection is always set up for the monitor process.
+We can use the `:mongo_db` atom instead of a process pid. This allows us to call the `Mongo` functions directly from
+every place in the code.
 
 ## Replica Sets
 
@@ -888,14 +962,14 @@ You can use the `:timeout` as a global option to override the default value:
 
 ```elixir
 # Starts an pooled connection
-{:ok, conn} = Mongo.start_link(url: "mongodb://localhost:27017/db-name", timeout: 60_000)
+{:ok, top} = Mongo.start_link(url: "mongodb://localhost:27017/db-name", timeout: 60_000)
 ```
 
 Each single connection uses `60_000` (60 seconds) as the timeout value instead of `15_000`. But you can override the default value by
 using the `:timeout` option, when running a single command:
 
-```elixr
-Mongo.find(conn, "dogs", %{}, timeout: 120_000)
+```elixir
+Mongo.find(top, "dogs", %{}, timeout: 120_000)
 ```
 
 Now the driver will use 120 seconds as the timeout for the single query.
@@ -937,16 +1011,16 @@ for reading from change streams:
 ```elixir
 seeds = ["hostname1.net:27017", "hostname2.net:27017", "hostname3.net:27017"]
 {:ok, top} = Mongo.start_link(database: "my-db", seeds: seeds, appname: "getting rich")
-cursor =  Mongo.watch_collection(top, "accounts", [], fn doc -> IO.puts "New Token #{inspect doc}" end, max_time: 2_000 )
-cursor |> Enum.each(fn doc -> IO.puts inspect doc end)
+stream =  Mongo.watch_collection(top, "accounts", [], fn doc -> IO.puts "New Token #{inspect doc}" end, max_time: 2_000 )
+Enum.each(stream, fn doc -> IO.puts inspect doc end)
 ```
 
 An example with a spawned process that sends messages to the monitor process:
 
 ```elixir
 def for_ever(top, monitor) do
-    cursor = Mongo.watch_collection(top, "users", [], fn doc -> send(monitor, {:token, doc}) end)
-    cursor |> Enum.each(fn doc -> send(monitor, {:change, doc}) end)
+    stream = Mongo.watch_collection(top, "users", [], fn doc -> send(monitor, {:token, doc}) end)
+    Enum.each(stream, fn doc -> send(monitor, {:change, doc}) end)
 end
 
 spawn(fn -> for_ever(top, self()) end)
@@ -960,7 +1034,7 @@ To create indexes you can call the function `Mongo.create_indexes/4`:
 
 ```elixir
 indexes =  [[key: [files_id: 1, n: 1], name: "files_n_index", unique: true]]
-Mongo.create_indexes(topology_pid, "my_collection", indexes, opts)
+Mongo.create_indexes(top, "my_collection", indexes, opts)
 ```
 
 You specify the `indexes` parameter as a keyword list with all options described in the documentation of the [createIndex](https://docs.mongodb.com/manual/reference/command/createIndexes/#dbcmd.createIndexes) command.
@@ -1006,7 +1080,7 @@ bulk = "bulk"
        |> OrderedBulk.delete_one(%{kind: "cat"})
        |> OrderedBulk.delete_one(%{kind: "cat"})
 
-result = Mongo.BulkWrite.write(:mongo, bulk, w: 1)
+result = Mongo.BulkWrite.write(top, bulk, w: 1)
 ```
 
 In the following example we import 1.000.000 integers into the MongoDB using the stream api:
@@ -1137,11 +1211,11 @@ to `Logger.info`:
 
 ```elixir
 iex> Mongo.EventHandler.start()
-iex> {:ok, conn} = Mongo.start_link(url: "mongodb://localhost:27017/test")
+iex> {:ok, top} = Mongo.start_link(url: "mongodb://localhost:27017/test")
 {:ok, #PID<0.226.0>}
- iex> Mongo.find_one(conn, "test", %{})
-                                      [info] Received command: %Mongo.Events.CommandStartedEvent{command: [find: "test", ...
-                                                                                                                 [info] Received command: %Mongo.Events.CommandSucceededEvent{command_name: :find, ...
+ iex> Mongo.find_one(top, "test", %{}) |> Enum.to_list()
+[info] Received command: %Mongo.Events.CommandStartedEvent{command: [find: "test", ...
+[info] Received command: %Mongo.Events.CommandSucceededEvent{command_name: :find, ...
 ```
 
 ## Testing
@@ -1177,9 +1251,8 @@ $ mongod --sslMode allowSSL --sslPEMKeyFile /path/to/mongodb.pem
 - For `--sslMode` you can use one of `allowSSL` or `preferSSL`
 - You can enable any other options you want when starting `mongod`
 
-## Special Thanks
-
-Special thanks to [JetBrains](https://www.jetbrains.com/?from=elixir-mongodb-driver) for providing a free JetBrains Open Source license for their complete toolbox.
+## Additional articles
+* [Connecting to MongoDB with Elixir](https://zookzook.github.io/2024/08-25.html)
 
 ## Copyright and License
 
