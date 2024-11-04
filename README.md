@@ -10,7 +10,7 @@
 
 ## Features
 
-- supports MongoDB versions 4.x, 5.x, 6.x, 7.x
+- supports MongoDB versions 4.x, 5.x, 6.x, 7.x, 8.x
 - connection pooling ([through DBConnection 2.x](https://github.com/elixir-ecto/db_connection))
 - streaming cursors
 - performant ObjectID generation
@@ -1253,6 +1253,7 @@ $ mongod --sslMode allowSSL --sslPEMKeyFile /path/to/mongodb.pem
 
 ## Additional articles
 * [Connecting to MongoDB with Elixir](https://zookzook.github.io/2024/08-25.html)
+* [Using Network Compression with MongoDB in Elixir](https://zookzook.github.io/2024/09-15.html)
 
 ## Copyright and License
 
